@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Debt-Free Planner (Free Demo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f5fa;--card:#fff;--ink:#14233a;--mut:#5d6b82;--line:#dbe2ee;--ac:#3b4bd6;--acs:#e6e9ff;--hi:#e08a00;--ok:#0f8a5f;--bad:#c93b3b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1526;--card:#17213a;--ink:#e8edf8;--mut:#9aa8c2;--line:#2a3857;--ac:#8c97ff;--acs:#252e57;--hi:#f5b042;--ok:#4cd6a0;--bad:#ff8080}}
+:root[data-theme="dark"]{--bg:#0e1526;--card:#17213a;--ink:#e8edf8;--mut:#9aa8c2;--line:#2a3857;--ac:#8c97ff;--acs:#252e57;--hi:#f5b042;--ok:#4cd6a0;--bad:#ff8080}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:880px;margin:0 auto;padding:16px}
+h1,h2,.big{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+h1{font-size:1.3rem}h2{font-size:1.1rem;margin-bottom:8px}
+select,input,button{font:inherit;color:inherit}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:0;width:100%}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 12px}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.hero{border-left:6px solid var(--hi)}
+.big{font-size:clamp(2.2rem,9vw,3.6rem);font-weight:800;line-height:1.05;color:var(--hi)}
+.mut{color:var(--mut);font-size:.9rem}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.stats{display:flex;flex-wrap:wrap;gap:18px;margin-top:10px}.stats b{display:block;font-size:1.15rem}
+.row{display:grid;grid-template-columns:2fr 1.2fr .8fr 1fr 36px;gap:6px;margin-bottom:6px;align-items:center}
+.row.h{font-size:.8rem;color:var(--mut)}
+.x{padding:6px}
+.strats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.st{text-align:left;padding:10px}.st.on{border-color:var(--ac);background:var(--acs)}.st b{display:block}
+.ex{display:flex;gap:8px;align-items:center;margin-top:12px}.ex input[type=range]{padding:0}
+.ex input[type=number]{width:110px}
+ol{padding-left:20px;margin:0}li{margin-bottom:4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.row{grid-template-columns:1fr 1fr 1fr 1fr 36px}.row input:first-child{grid-column:1/5}.row .x{grid-row:1}.row.h{display:none}.two{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block}
+</style></head><body><main>
+<header><h1>Debt-Free Planner <span class="mut" style="font-size:.8rem;border:1px solid var(--line);border-radius:6px;padding:2px 6px">Free demo</span></h1>
+<div style="display:flex;gap:6px"><select id="cur" aria-label="Currency" style="width:auto"><option>$</option><option>£</option><option>€</option><option>Rs </option><option>₹</option><option>AED </option></select><button id="th" aria-label="Toggle theme">◐</button></div></header>
+
+<section class="card hero"><div class="mut">You’re debt-free in</div>
+<div class="big" id="date">–</div>
+<div class="mut" id="mo"></div>
+<div class="stats"><div><span class="mut">Interest to pay</span><b id="int"></b></div><div><span class="mut">Saved vs minimums only</span><b class="ok" id="sav"></b></div><div><span class="mut">First debt gone</span><b id="first"></b></div></div>
+<div class="ex"><label for="ext" class="mut">Extra per month</label><input type="range" id="exr" min="0" max="1000" step="5" aria-label="Extra per month slider"><input type="number" id="ext" min="0" step="5"></div>
+<div class="mut" id="warn"></div></section>
+
+<section class="card"><h2>Your debts</h2>
+<div class="row h"><span>Name</span><span>Balance</span><span>APR %</span><span>Minimum / mo</span><span></span></div>
+<div id="rows"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="p" id="add">Add debt</button><button id="demo">Load example</button></div>
+<p class="mut" id="lim">Free demo: up to 2 debts. The full version has no limit.</p><p class="mut">Use 0% APR for interest-free loans such as family loans. Everything stays on this device. Nothing is sent anywhere.</p></section>
+
+<section class="card"><h2>Pick your payoff order</h2><div class="strats" id="strats"></div></section>
+
+<section class="card"><h2>Balance over time</h2><div id="chart"></div>
+<div class="mut"><span style="color:var(--ac)">━</span> Your plan &nbsp; <span style="color:var(--mut)">╌</span> Minimums only</div></section>
+
+<section class="card"><h2>Order of payoff</h2><ol id="ord"></ol></section>
+
+<div class="two">
+<section class="card"><h2>Want a deadline?</h2><label class="mut" for="tg">Debt-free by</label><input type="month" id="tg"><p id="tgr" class="mut"></p></section>
+<section class="card"><h2>One-off payment</h2><label class="mut" for="lump">Tax refund, bonus, sold item</label><input type="number" id="lump" min="0" step="10"><p id="lr" class="mut"></p></section>
+</div>
+<section class="card"><button id="csv">Download plan (CSV)</button> <button id="bk">Download backup</button> <label class="mut"><input type="file" id="imp" accept=".json" style="display:none"><u style="cursor:pointer">Restore backup</u></label>
+<p class="mut">Payoff dates are estimates from the numbers you enter. Lenders may change rates or add fees, so check your statements. Not financial advice.</p></section>
+</main>
+<script>
+const $=s=>document.querySelector(s),KEY="dfp1demo";
+const def={cur:"$",extra:100,lump:0,strat:"snow",debts:[{n:"Credit card",b:3200,r:24.9,m:95},{n:"Car loan",b:8400,r:7.5,m:260}]};
+let S;try{S=JSON.parse(localStorage.getItem(KEY))||def}catch(e){S=def}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const NAMES={snow:["Snowball","Smallest balance first. Quick wins."],aval:["Avalanche","Highest rate first. Least interest."],bill:["Biggest interest bill","Costliest debt in money terms first."],cust:["My order","Follows the list above, top to bottom."]};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=n=>S.cur+Math.round(n).toLocaleString();
+const mdate=n=>{const d=new Date();d.setMonth(d.getMonth()+n);return d.toLocaleDateString(undefined,{month:"short",year:"numeric"})};
+function order(k,ds){const a=ds.map((x,i)=>i);const f={snow:i=>ds[i].b,aval:i=>-ds[i].r,bill:i=>-ds[i].b*ds[i].r,cust:i=>i}[k];return a.sort((x,y)=>f(x)-f(y))}
+function sim(k,extra,lump,roll=true){
+ const ds=S.debts.map(x=>({b:+x.b||0,r:+x.r||0,m:+x.m||0}));const ord=order(k,ds);
+ let L=lump;for(const i of ord){const p=Math.min(L,ds[i].b);ds[i].b-=p;L-=p}
+ const ser=[ds.reduce((a,x)=>a+x.b,0)],done={};let int=0,mo=0;
+ const pool0=ds.reduce((a,x)=>a+x.m,0)+extra;
+ while(ser[mo]>.005&&mo<600){mo++;
+  ds.forEach(x=>{if(x.b>0){const i=x.b*x.r/1200;x.b+=i;int+=i}});
+  let pool=roll?pool0:0;
+  ds.forEach(x=>{if(x.b>0){const p=Math.min(x.b,x.m);x.b-=p;if(roll)pool-=p}});
+  if(roll)for(const i of ord){if(ds[i].b>0&&pool>0){const p=Math.min(ds[i].b,pool);ds[i].b-=p;pool-=p}}
+  ds.forEach((x,i)=>{if(x.b<=.005&&done[i]==null){x.b=0;done[i]=mo}});
+  ser.push(ds.reduce((a,x)=>a+x.b,0))}
+ return{mo,int,ser,done,ord,ok:ser[mo]<=.005}}
+function render(){
+ const cur=$("#cur");cur.value=S.cur;
+ const R=sim(S.strat,S.extra,S.lump),M=sim("snow",0,0,false);
+ $("#date").textContent=R.ok?mdate(R.mo):"Not yet";
+ $("#mo").textContent=R.ok?(R.mo>=12?Math.floor(R.mo/12)+" yr ":"")+(R.mo%12?R.mo%12+" mo":"")+" from now":"";
+ $("#int").textContent=money(R.int);
+ $("#sav").textContent=M.ok?money(Math.max(0,M.int-R.int))+" and "+Math.max(0,M.mo-R.mo)+" months sooner":"–";
+ const fv=Object.values(R.done);$("#first").textContent=fv.length?mdate(Math.min(...fv)):"–";
+ $("#warn").textContent=R.ok?"":"At these payments the balance never reaches zero. Raise a minimum or add extra.";
+ $("#ext").value=S.extra;$("#exr").value=Math.min(S.extra,1000);$("#lump").value=S.lump||"";
+ // strategies
+ $("#strats").innerHTML=Object.keys(NAMES).map(k=>{const r=sim(k,S.extra,S.lump),f=Object.values(r.done);
+  return `<button class="st ${k==S.strat?"on":""}" data-k="${k}"><b>${NAMES[k][0]}</b><span class="mut">${NAMES[k][1]}</span><br>${r.ok?mdate(r.mo)+" · "+money(r.int)+" interest":"No payoff"}</button>`}).join("");
+ document.querySelectorAll(".st").forEach(b=>b.onclick=()=>{S.strat=b.dataset.k;save();render()});
+ // chart
+ const n=Math.max(R.ser.length,M.ser.length),mx=Math.max(R.ser[0],M.ser[0],1);
+ const pts=s=>s.map((v,i)=>`${(i/(n-1||1)*560+30).toFixed(1)},${(170-v/mx*150).toFixed(1)}`).join(" ");
+ $("#chart").innerHTML=`<svg viewBox="0 0 600 200" role="img" aria-label="Total debt balance over time"><line x1="30" y1="170" x2="590" y2="170" stroke="var(--line)"/><polyline points="${pts(M.ser)}" fill="none" stroke="var(--mut)" stroke-width="2" stroke-dasharray="5 5"/><polyline points="${pts(R.ser)}" fill="none" stroke="var(--ac)" stroke-width="3"/><text x="30" y="14" fill="var(--mut)" font-size="12">${money(mx)}</text><text x="30" y="190" fill="var(--mut)" font-size="12">Now</text><text x="590" y="190" fill="var(--mut)" font-size="12" text-anchor="end">${mdate(n-1)}</text></svg>`;
+ // order
+ $("#ord").innerHTML=R.ord.map(i=>`<li><b>${esc(S.debts[i].n||"Debt")}</b> gone ${R.done[i]!=null?mdate(R.done[i]):"–"}</li>`).join("");
+ target(R);lumpNote();
+}
+function target(){const v=$("#tg").value;if(!v){$("#tgr").textContent="Pick a month and I’ll work out the extra you need.";return}
+ const [y,m]=v.split("-").map(Number),t=new Date(),N=(y-t.getFullYear())*12+(m-1-t.getMonth());
+ if(N<1){$("#tgr").textContent="Choose a future month.";return}
+ let lo=0,hi=S.debts.reduce((a,x)=>a+(+x.b||0),0)+1;
+ if(!sim(S.strat,hi,S.lump).ok||sim(S.strat,hi,S.lump).mo>N){$("#tgr").textContent="That’s too soon, even with everything thrown at it.";return}
+ while(hi-lo>1){const mid=(lo+hi)/2;sim(S.strat,mid,S.lump).mo<=N?hi=mid:lo=mid}
+ const need=Math.ceil(hi);$("#tgr").innerHTML=`Pay an extra <b>${money(need)}</b> a month${need>S.extra?` (${money(need-S.extra)} more than now)`:" — you’re already on track"}.`}
+function lumpNote(){const a=sim(S.strat,S.extra,0),b=sim(S.strat,S.extra,S.lump||0);
+ $("#lr").textContent=S.lump>0&&a.ok?`Moves your date ${a.mo-b.mo} months sooner and saves ${money(a.int-b.int)} interest.`:"Type an amount to see what it does."}
+function rows(){$("#rows").innerHTML=S.debts.map((d,i)=>`<div class="row"><input data-i="${i}" data-f="n" value="${esc(d.n)}" aria-label="Debt name" placeholder="Name"><input data-i="${i}" data-f="b" type="number" min="0" value="${d.b}" aria-label="Balance"><input data-i="${i}" data-f="r" type="number" min="0" step="0.1" value="${d.r}" aria-label="APR percent"><input data-i="${i}" data-f="m" type="number" min="0" value="${d.m}" aria-label="Minimum payment"><button class="x" data-del="${i}" aria-label="Remove debt">✕</button></div>`).join("")||'<p class="mut">No debts yet. Add your first one below.</p>';
+ document.querySelectorAll("#rows input").forEach(e=>e.oninput=()=>{const d=S.debts[e.dataset.i],f=e.dataset.f;d[f]=f=="n"?e.value:+e.value;save();render()});
+ document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S.debts.splice(b.dataset.del,1);save();rows();render()})}
+$("#add").onclick=()=>{if(S.debts.length>=2){$("#lim").innerHTML="<b>Demo limit reached (2 debts).</b> The full version lets you add as many as you need.";return}S.debts.push({n:"",b:1000,r:15,m:40});save();rows();render()};
+$("#demo").onclick=()=>{S=JSON.parse(JSON.stringify({...def,cur:S.cur}));save();rows();render()};
+$("#cur").onchange=e=>{S.cur=e.target.value;save();render()};
+$("#ext").oninput=e=>{S.extra=+e.target.value||0;save();render()};
+$("#exr").oninput=e=>{S.extra=+e.target.value;save();render()};
+$("#lump").oninput=e=>{S.lump=+e.target.value||0;save();render()};
+$("#tg").oninput=()=>target();
+$("#th").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).getPropertyValue("--bg").trim()=="#0e1526";r.dataset.theme=d?"light":"dark"};
+const dl=(n,t,m)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;a.click()};
+$("#csv").onclick=()=>{const R=sim(S.strat,S.extra,S.lump);dl("payoff-plan.csv","Month,Total balance\n"+R.ser.map((v,i)=>mdate(i)+","+v.toFixed(2)).join("\n"),"text/csv")};
+$("#bk").onclick=()=>dl("debt-planner-backup.json",JSON.stringify(S),"application/json");
+$("#imp").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const j=JSON.parse(t);if(Array.isArray(j.debts)){j.debts=j.debts.slice(0,2);S=j;save();rows();render()}}catch(x){}})};
+rows();render();
+</script></body></html>
